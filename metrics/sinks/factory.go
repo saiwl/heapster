@@ -23,6 +23,7 @@ import (
 	"k8s.io/heapster/metrics/core"
 	"k8s.io/heapster/metrics/sinks/elasticsearch"
 	"k8s.io/heapster/metrics/sinks/gcm"
+	"k8s.io/heapster/metrics/sinks/graphite"
 	"k8s.io/heapster/metrics/sinks/hawkular"
 	"k8s.io/heapster/metrics/sinks/influxdb"
 	"k8s.io/heapster/metrics/sinks/kafka"
@@ -48,6 +49,8 @@ func (this *SinkFactory) Build(uri flags.Uri) (core.DataSink, error) {
 		return kafka.NewKafkaSink(&uri.Val)
 	case "log":
 		return logsink.NewLogSink(), nil
+	case "graphite":
+		return graphite.NewGraphiteSink(&uri.Val)
 	case "metric":
 		return metricsink.NewMetricSink(140*time.Second, 15*time.Minute, []string{
 			core.MetricCpuUsageRate.MetricDescriptor.Name,
