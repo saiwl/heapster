@@ -65,7 +65,7 @@ func (sink *GraphiteSink) ExportData(dataBatch *core.DataBatch) {
 			series = append(series, graphite_client.Metric{Name: mName, Value: metricValue, Timestamp: time.Now().Unix()})
 		}
 	}
-	fmt.Println(series)
+	//fmt.Println(series)
 	sink.sendGraphiteMetrics(series)
 }
 
