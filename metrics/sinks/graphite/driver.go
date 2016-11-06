@@ -47,12 +47,11 @@ func (sink *GraphiteSink) ExportData(dataBatch *core.DataBatch) {
 			case core.ValueFloat:
 				metricValue = strconv.FormatFloat(float64(value.FloatValue), 'E', -1, 32)
 			}
-			fmt.Println(ametricName, ":", metricValue)
-			ametricName = strings.Replace(ametricName, "/", "-", -1)
+			ametricName = strings.Replace(ametricName, "/", ".", -1)
+			ametricName = strings.Replace(ametricName, "..", ".", -1)
 			series = append(series, graphite_client.Metric{Name: ametricName, Value: metricValue, Timestamp: time.Now().Unix()})
 		}
 		for _, metric := range metricSet.LabeledMetrics {
-			fmt.Println(metric.Name, "-->", metric.Labels, "-->", metric.MetricValue)
 			labeledValue := metric.GetValue()
 			switch labeledValue.(type) {
 			case float32:
@@ -63,7 +62,8 @@ func (sink *GraphiteSink) ExportData(dataBatch *core.DataBatch) {
 				metricValue = strconv.FormatInt(int64(alabeledValue), 10)
 			}
 			mName := fmt.Sprintf("%s.%s.%s", metricName, metric.Name, metric.Labels["resource_id"])
-			mName = strings.Replace(mName, "/", "-", -1)
+			mName = strings.Replace(mName, "/", ".", -1)
+			mName = strings.Replace(mName, "..", ".", -1)
 			series = append(series, graphite_client.Metric{Name: mName, Value: metricValue, Timestamp: time.Now().Unix()})
 		}
 	}
@@ -72,7 +72,21 @@ func (sink *GraphiteSink) ExportData(dataBatch *core.DataBatch) {
 }
 
 func (sink *GraphiteSink) sendGraphiteMetrics(series []graphite_client.Metric) error {
-	sink.client.SendMetrics(series)
+	length := len(series)
+	start := 0
+	end := 20
+	for {
+		err := sink.client.SendMetrics(series[start:end])
+                if err != nil {
+			fmt.Println(err)		
+		}
+		start = start + 20
+		end = end + 20
+		if end >= length {
+			sink.client.SendMetrics(series[start:])
+			break
+		}
+	}
 	return nil
 }
 
@@ -88,6 +102,6 @@ func NewGraphiteSink(url *url.URL) (core.DataSink, error) {
 	if err != nil {
 		return &GraphiteSink{}, err
 	}
-	client, _ := graphite_client.NewGraphiteUDP(hostport[0], port, "k8s")
+	client, err := graphite_client.NewGraphiteUDP(hostport[0], port, "k8s")
 	return &GraphiteSink{client: client}, nil
 }
