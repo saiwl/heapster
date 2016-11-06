@@ -48,6 +48,7 @@ func (sink *GraphiteSink) ExportData(dataBatch *core.DataBatch) {
 				metricValue = strconv.FormatFloat(float64(value.FloatValue), 'E', -1, 32)
 			}
 			fmt.Println(ametricName, ":", metricValue)
+			ametricName = strings.Replace(ametricName, "/", "-", -1)
 			series = append(series, graphite_client.Metric{Name: ametricName, Value: metricValue, Timestamp: time.Now().Unix()})
 		}
 		for _, metric := range metricSet.LabeledMetrics {
@@ -62,6 +63,7 @@ func (sink *GraphiteSink) ExportData(dataBatch *core.DataBatch) {
 				metricValue = strconv.FormatInt(int64(alabeledValue), 10)
 			}
 			mName := fmt.Sprintf("%s.%s.%s", metricName, metric.Name, metric.Labels["resource_id"])
+			mName = strings.Replace(mName, "/", "-", -1)
 			series = append(series, graphite_client.Metric{Name: mName, Value: metricValue, Timestamp: time.Now().Unix()})
 		}
 	}
@@ -86,6 +88,6 @@ func NewGraphiteSink(url *url.URL) (core.DataSink, error) {
 	if err != nil {
 		return &GraphiteSink{}, err
 	}
-	client, _ := graphite_client.NewGraphiteWithMetricPrefix(hostport[0], port, "k8s")
+	client, _ := graphite_client.NewGraphiteUDP(hostport[0], port, "k8s")
 	return &GraphiteSink{client: client}, nil
 }

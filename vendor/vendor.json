@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "pkOYltwmUK8KAkqQpXudbX87v6c=",
+			"path": "github.com/marpaia/graphite-golang",
+			"revision": "c98f562aa632f89588e321a4f6013c3ae57aa48c",
+			"revisionTime": "2016-09-01T20:17:09Z"
+		}
+	],
+	"rootPath": "k8s.io/heapster"
+}
