@@ -25,6 +25,9 @@ func (sink *GraphiteSink) ExportData(dataBatch *core.DataBatch) {
 	for _, metricSet := range dataBatch.MetricSets {
 		metricName = ""
 		labels := metricSet.Labels
+		if labels["namespace_name"] == "chaos" {
+			continue
+		}
 		switch labels["type"] {
 		case core.MetricSetTypeNode:
 			metricName = metricName + core.MetricSetTypeNode + "." + labels["nodename"]
@@ -49,6 +52,7 @@ func (sink *GraphiteSink) ExportData(dataBatch *core.DataBatch) {
 			}
 			ametricName = strings.Replace(ametricName, "/", ".", -1)
 			ametricName = strings.Replace(ametricName, "..", ".", -1)
+			//fmt.Println(ametricName,metricValue, time.Now())
 			series = append(series, graphite_client.Metric{Name: ametricName, Value: metricValue, Timestamp: time.Now().Unix()})
 		}
 		for _, metric := range metricSet.LabeledMetrics {
@@ -64,24 +68,24 @@ func (sink *GraphiteSink) ExportData(dataBatch *core.DataBatch) {
 			mName := fmt.Sprintf("%s.%s.%s", metricName, metric.Name, metric.Labels["resource_id"])
 			mName = strings.Replace(mName, "/", ".", -1)
 			mName = strings.Replace(mName, "..", ".", -1)
+			//fmt.Println(mName,metricValue, time.Now())
 			series = append(series, graphite_client.Metric{Name: mName, Value: metricValue, Timestamp: time.Now().Unix()})
 		}
 	}
-	//fmt.Println(series)
 	sink.sendGraphiteMetrics(series)
 }
 
 func (sink *GraphiteSink) sendGraphiteMetrics(series []graphite_client.Metric) error {
 	length := len(series)
 	start := 0
-	end := 20
+	end := 10
 	for {
 		err := sink.client.SendMetrics(series[start:end])
                 if err != nil {
-			fmt.Println(err)		
+			fmt.Println(err)
 		}
-		start = start + 20
-		end = end + 20
+		start = start + 10
+		end = end + 10
 		if end >= length {
 			sink.client.SendMetrics(series[start:])
 			break

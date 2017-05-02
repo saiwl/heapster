@@ -11,8 +11,8 @@ deps:
 	which godep || go get github.com/tools/godep
 
 build: clean deps
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 godep go build -o heapster k8s.io/heapster/metrics
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 godep go build -o eventer k8s.io/heapster/events
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o heapster k8s.io/heapster/metrics
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o eventer k8s.io/heapster/events
 
 sanitize:
 	hooks/check_boilerplate.sh
@@ -28,7 +28,7 @@ test-unit-cov: clean deps sanitize build
 test-integration: clean deps build
 	godep go test -v --timeout=60m ./integration/... --vmodule=*=2 $(FLAGS) --namespace=$(TEST_NAMESPACE) --kube_versions=$(SUPPORTED_KUBE_VERSIONS)
 
-container: build
+container:
 	cp heapster deploy/docker/heapster
 	cp eventer deploy/docker/eventer
 	docker build -t $(PREFIX)/heapster:$(TAG) deploy/docker/
